@@ -4,15 +4,21 @@ const bodyParser = require("body-parser");
 
 const Users = require("./Routes/usersRoute");
 const Categories = require("./Routes/categoriesRoute");
+const Admin = require("./Routes/adminRoute");
+const Payment = require("./Routes/paymentRoute");
+
+require("dotenv").config();
 
 const app = express();
-const port = 5000;
-const uri = "mongodb://0.0.0.0/Gym_Project";
+const port = process.env.PORT || 5000;
+const uri = process.env.dbUri;
 
 app.use(express.json());
 app.use(bodyParser.json());
 app.use("/Users", Users);
 app.use("/Categorie", Categories);
+app.use("/Admin", Admin);
+app.use("/Payment", Payment);
 
 //Connection
 async function connection() {
