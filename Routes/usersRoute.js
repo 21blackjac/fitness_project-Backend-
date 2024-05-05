@@ -17,11 +17,11 @@ router.get("/users", async (req, res) => {
   }
 });
 
-//Affichier l'utilisateur par id
-router.get("/user/:id", async (req, res) => {
+//Affichier l'utilisateur par _id
+router.get("/user/:_id", async (req, res) => {
   try {
-    const userId = +req.params.id;
-    const showUser = await user.findOne({ id: userId });
+    const user_id = req.params._id;
+    const showUser = await user.findOne({ _id: user_id });
     if (!showUser) {
       res.status(404).send("User not found!");
     } else {
@@ -49,10 +49,13 @@ router.post("/addUser", async (req, res) => {
 });
 
 //Modifier l'utilisateur
-router.put("/updateUser/:id", async (req, res) => {
+router.put("/updateUser/:_id", async (req, res) => {
   try {
-    const userId = +req.params.id;
-    const updateUser = await user.updateOne({ id: userId }, { $set: req.body });
+    const user_id = req.params._id;
+    const updateUser = await user.updateOne(
+      { _id: user_id },
+      { $set: req.body }
+    );
     if (updateUser.modifiedCount === 0) {
       res.status(404).send("No user updated");
     } else {
@@ -67,10 +70,10 @@ router.put("/updateUser/:id", async (req, res) => {
 });
 
 //Suprimer l'utilisateur
-router.delete("/deleteUser/:id", async (req, res) => {
+router.delete("/deleteUser/:_id", async (req, res) => {
   try {
-    const userId = +req.params.id;
-    const deleteUser = await user.deleteOne({ id: userId });
+    const user_id = req.params._id;
+    const deleteUser = await user.deleteOne({ _id: user_id });
 
     if (deleteUser.deletedCount === 0) {
       res.status(404).send("No user deleted");

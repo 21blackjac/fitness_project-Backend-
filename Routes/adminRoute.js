@@ -4,23 +4,44 @@ const Admin = require("../Models/Admin");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
+require("dotenv").config();
+
 const JWT_SECRET = process.env.JWT_SECRET;
 
-router.get("/test", (req, res) => {
-  res.send("Admin Works!");
-});
+// Middleware for authentication
+// function auth(req, res, next) {
+//   const token  = req.header("x-auth-token");
+//   // Check if not token is supplied
+//   if (!token) return res.status(401).send({ msg: "No Token Provided" });
 
-router.get("/adminList", async (req, res) => {
-  try {
-    const admins = await Admin.find();
-    return res.status(200).json(admins);
-  } catch (err) {
-    console.error(err.message);
-    return res.status(500).send("Server error");
-  }
-});
+//   try {
+//     // Verify the token
+//     const decoded = jwt.verify(token, JWT_SECRET);
 
-router.post("/register", async (req, res) => {
+//     console.log(decoded);
+//     // Get the user from the database using the email from the payload
+//     User = Admin.findOne({email : decoded.email});
+//     // Attach the user to the request so it can be accessed in subsequent middleware functions
+//     req.user = User;
+//     next();
+//   } catch (e) {
+//     res.status(401).send({ msg: "Invalid Token" })
+//   }
+// }
+
+// router.get("/signup", (req, res) => {
+//   res.send(
+//     "<form action='/admin/signup' method='POST'>Sign-up formular:<br /><br /><input type='text' name='username' required /><br /><br /><input type='email' name='email'  required /><br /><br /><input type='password' name='password' required /><br /><br /><input type='submit' value='Register' /> </form> "
+//   );
+// });
+
+// router.get("/login", (req, res) => {
+//   res.send(
+//     "<form action='/admin/login' method='POST'>Login formular:<br /><br /><input type='email' name='email'  required /><br /><br /><input type='password' name='password' required /><br /><br /><input type='submit' value='Login' /> </form> "
+//   );
+// });
+
+router.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
     const existingAdmin = await Admin.findOne({ email });
@@ -49,10 +70,16 @@ router.post("/register", async (req, res) => {
         maxAge: 3600000,
       })
       .status(201)
-      .json({ token, userId: newAdmin._id });
+      .json({
+        message: "Admin created successfully!",
+        token,
+        userId: newAdmin._id,
+      });
   } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).send("Internal server error");
+    console.error("Error:", err.message);
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: err.message });
   }
 });
 
@@ -79,7 +106,48 @@ router.post("/login", async (req, res) => {
         sameSite: "strict",
         maxAge: 3600000,
       })
-      .json({ token, userId: admin._id });
+      .json({
+        message: "You've been logged in successfully!",
+        token,
+        userId: admin._id,
+      });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).send("Server Error");
+  }
+});
+
+router.get("/logout", (req, res) => {
+  res.clearCookie("jwt").json({ message: "Logged out successfully!" });
+});
+
+router.get("/display", async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.user._id);
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+    res.json(admin);
+  } catch (error) {
+    console.log("Error:", error.message);
+  }
+});
+
+router.put("/update", async (req, res) => {
+  try {
+    const { username, email } = req.body;
+    const admin = await Admin.findById(req.user._id);
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    admin.username = username || admin.username;
+    admin.email = email || admin.email;
+
+    await admin.save();
+
+    res.json({ message: "Admin data updated successfully", admin });
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).send("Server Error");
