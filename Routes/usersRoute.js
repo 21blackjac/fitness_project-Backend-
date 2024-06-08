@@ -32,6 +32,16 @@ router.get("/user/:_id", async (req, res) => {
   }
 });
 
+// Affichier le nombre des utilisateurs
+router.get("/usersCount", async (req, res) => {
+  try {
+    const count = await user.countDocuments();
+    res.json({ count });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 //Ajouter les utilisateurs
 router.post("/addUser", async (req, res) => {
   try {

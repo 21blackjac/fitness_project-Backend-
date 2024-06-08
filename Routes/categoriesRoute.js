@@ -33,6 +33,16 @@ router.get("/Categories/:_id", async (req, res) => {
   }
 });
 
+// Affichier le nombre des categories
+router.get("/categoriesCount", async (req, res) => {
+  try {
+    const count = await Categorie.countDocuments();
+    res.json({ count });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 //Ajouter une Categorie
 router.post("/addCategorie", async (req, res) => {
   try {

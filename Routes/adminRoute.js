@@ -65,8 +65,7 @@ router.post("/signup", async (req, res) => {
     res
       .cookie("jwt", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: "lax",
         maxAge: 3600000,
       })
       .status(201)
@@ -102,17 +101,17 @@ router.post("/login", async (req, res) => {
     res
       .cookie("jwt", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 3600000,
+        sameSite: "lax",
+        maxAge: new  Date(Date.now() + 900000),
       })
       .json({
         message: "You've been logged in successfully!",
         token,
         userId: admin._id,
       });
+    console.log("Admin: ", admin);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error:", error.message);
     return res.status(500).send("Server Error");
   }
 });
@@ -123,13 +122,32 @@ router.get("/logout", (req, res) => {
 
 router.get("/display", async (req, res) => {
   try {
-    const admin = await Admin.findById(req.user._id);
+    const admin = await Admin.find();
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
     }
     res.json(admin);
   } catch (error) {
     console.log("Error:", error.message);
+  }
+});
+
+router.get("/display/:id", async (req, res) => {
+  try {
+    const admin_id = req.params.id;
+    if (!admin_id) {
+      return res.status(400).json({ message: "Admin ID is required" });
+    }
+
+    const admin = await Admin.findById(admin_id);
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    res.json(admin);
+  } catch (error) {
+    console.log("Error:", error.message);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

@@ -33,6 +33,16 @@ router.get("/Payments/:_id", async (req, res) => {
   }
 });
 
+//Affichier le nombre des Payment
+router.get("/paymentsCount", async (req, res) => {
+  try {
+    const count = await Payment.countDocuments();
+    res.json({ count });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 //Ajouter une Payment
 router.post("/addPayment", async (req, res) => {
   try {
