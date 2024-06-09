@@ -102,7 +102,7 @@ router.post("/login", async (req, res) => {
       .cookie("jwt", token, {
         httpOnly: true,
         sameSite: "lax",
-        maxAge: new  Date(Date.now() + 900000),
+        maxAge: 3600000,
       })
       .json({
         message: "You've been logged in successfully!",
@@ -117,7 +117,7 @@ router.post("/login", async (req, res) => {
 });
 
 router.get("/logout", (req, res) => {
-  res.clearCookie("jwt").json({ message: "Logged out successfully!" });
+  res.clearCookie("adminId").json({ message: "Logged out successfully!" });
 });
 
 router.get("/display", async (req, res) => {
@@ -153,8 +153,8 @@ router.get("/display/:id", async (req, res) => {
 
 router.put("/update", async (req, res) => {
   try {
-    const { username, email } = req.body;
-    const admin = await Admin.findById(req.user._id);
+    const { username, email, password } = req.body;
+    const admin = await Admin.findOne();
 
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
@@ -163,11 +163,16 @@ router.put("/update", async (req, res) => {
     admin.username = username || admin.username;
     admin.email = email || admin.email;
 
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 12);
+      admin.password = hashedPassword;
+    }
+
     await admin.save();
 
     res.json({ message: "Admin data updated successfully", admin });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error:", error.message);
     return res.status(500).send("Server Error");
   }
 });
